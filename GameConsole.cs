@@ -1,6 +1,7 @@
 ﻿using GameLog = qASIC.Log;
 using System.Diagnostics;
 using qASIC.Console.Commands;
+using System.Reflection;
 
 namespace qASIC.Console
 {
@@ -121,10 +122,18 @@ namespace qASIC.Console
                 var stackTrace = new StackTrace();
                 var stackFrame = stackTrace.GetFrame(stackTraceIndex);
 
-                if (TryGetColorAttributeOfTrace(stackFrame, out var colorAttr))
+                var method = stackFrame?.GetMethod();
+                var declaringType = method?.DeclaringType;
+
+                if (TryGetColorAttributeOfTrace(method, declaringType, out var colorAttr))
                 {
                     log.colorTag = colorAttr!.ColorTag;
                     log.color = colorAttr!.Color;
+                }
+
+                if (TryGetPrefixAttributeOfTrace(method, declaringType, out var prefixAttr))
+                {
+                    log.message = prefixAttr!.FormatMessage(log.message);
                 }
             }
 
@@ -132,16 +141,32 @@ namespace qASIC.Console
             OnLog?.Invoke(log);
         }
 
-        static bool TryGetColorAttributeOfTrace(StackFrame? frame, out LogColorAttribute? attribute)
+        static bool TryGetPrefixAttributeOfTrace(MethodBase? method, Type? declaringType, out LogPrefixAttribute? attribute)
         {
             attribute = null;
-            if (frame == null) return false;
 
-            var method = frame.GetMethod();
-            var declaringType = method?.DeclaringType;
-            var methodBody = method?.GetMethodBody();
+            if (method != null &&
+                ConsoleReflections.PrefixAttributeMethods.TryGetValue(ConsoleReflections.CreateMethodId(method), out var methodAttr))
+            {
+                attribute = methodAttr!;
+                return true;
+            }
 
-            if (methodBody != null &&
+            if (declaringType != null &&
+                ConsoleReflections.PrefixAttributeDeclaringTypes.TryGetValue(ConsoleReflections.CreateTypeId(declaringType), out var declaringTypeAttr))
+            {
+                attribute = declaringTypeAttr!;
+                return true;
+            }
+
+            return false;
+        }
+
+        static bool TryGetColorAttributeOfTrace(MethodBase? method, Type? declaringType, out LogColorAttribute? attribute)
+        {
+            attribute = null;
+
+            if (method != null &&
                 ConsoleReflections.ColorAttributeMethods.TryGetValue(ConsoleReflections.CreateMethodId(method), out var methodAttr))
             {
                 attribute = methodAttr!;
