@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using qASIC.Console.Commands;
 using System.Reflection;
+using qASIC.Console.Parsing.Arguments;
 
 namespace qASIC.Console
 {
@@ -17,7 +18,7 @@ namespace qASIC.Console
         public static List<GameLog> Logs { get; private set; } = new List<GameLog>();
 
         public GameCommandList? CommandList { get; set; }
-        public CommandParser? CommandParser { get; set; }
+        public ArgumentsParser? CommandParser { get; set; }
 
         /// <summary>Determines if console should try looking for attributes that can change log messages and colors.</summary>
         public bool UseLogModifierAttributes { get; set; } = true;
@@ -49,7 +50,7 @@ namespace qASIC.Console
 
         /// <summary>Executes a command.</summary>
         /// <param name="args">Parsed arguments.</param>
-        public void Execute(string[] args)
+        public void Execute(ConsoleArgument[] args)
         {
             if (CommandList == null)
                 throw new Exception("Cannot execute commands with no command list!");
@@ -57,16 +58,24 @@ namespace qASIC.Console
             if (args.Length == 0)
                 return;
 
-            if (!CommandList.TryGetCommand(args[0], out IGameCommand? command))
+            if (!CommandList.TryGetCommand(args[0].arg, out IGameCommand? command))
             {
-                LogError($"Command {args[0].ToLower()} doesn't exist");
+                LogError($"Command {args[0].arg.ToLower()} doesn't exist");
                 return;
             }
 
             try
             {
-                command!.GameConsole = this;
-                command!.Run(args);
+                var commandArgs = new CommandArgs()
+                {
+                    args = args,
+                    console = this,
+                };
+
+                var output = command!.Run(commandArgs);
+
+                if (output != null)
+                    Log($"Command returned '{output}'");
             }
             catch (GameCommandException e)
             {
@@ -75,8 +84,8 @@ namespace qASIC.Console
             catch (Exception e)
             {
                 LogError(IncludeStackTraceInUnknownCommandExceptions ?
-                    $"There was an error while executing command '{args[0].ToLower()}': {e}" :
-                    $"There was an error while executing command '{args[0].ToLower()}'.");
+                    $"There was an error while executing command '{args[0].arg.ToLower()}': {e}" :
+                    $"There was an error while executing command '{args[0].arg.ToLower()}'.");
             }
         }
 

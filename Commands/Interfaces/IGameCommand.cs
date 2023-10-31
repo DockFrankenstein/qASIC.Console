@@ -11,10 +11,8 @@
         /// <summary>Detailed description used when displaying command specific description in help</summary>
         string? DetailedDescription { get; }
 
-        GameConsole? GameConsole { get; set; }
-
         /// <summary>Method for executing command logic</summary>
         /// <param name="args">Parsed arguments, this includes the command name</param>
-        void Run(string[] args);
+        object? Run(CommandArgs args);
     }
 }

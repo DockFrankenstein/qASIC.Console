@@ -10,8 +10,6 @@
 
         public virtual string? DetailedDescription => null;
 
-        public GameConsole? GameConsole { get; set; }
-
-        public abstract void Run(string[] args);
+        public abstract object? Run(CommandArgs args);
     }
 }

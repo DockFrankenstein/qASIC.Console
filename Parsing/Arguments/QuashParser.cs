@@ -1,8 +1,11 @@
-﻿namespace qASIC.Console.Parsers
+﻿namespace qASIC.Console.Parsing.Arguments
 {
-    public class QuashParser : CommandParser
+    public class QuashParser : ArgumentsParser
     {
-        public override string[] ParseString(string cmd)
+        public string[] textForTrue = new string[] { "true", "on", "yes" };
+        public string[] textForFalse = new string[] { "false", "off", "no" };
+
+        public override ConsoleArgument[] ParseString(string cmd)
         {
             List<string> args = new List<string>();
 
@@ -42,7 +45,7 @@
             }
 
             args.Add(currentString);
-            return args.ToArray();
+            return args.Select(x => new ConsoleArgument(x, ParseArgument(x))).ToArray();
         }
     }
 }
