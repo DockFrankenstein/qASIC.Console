@@ -20,6 +20,8 @@ namespace qASIC.Console
         public GameCommandList? CommandList { get; set; }
         public ArgumentsParser? CommandParser { get; set; }
 
+        public GameConsoleTheme Theme { get; set; } = GameConsoleTheme.Default;
+
         /// <summary>Determines if console should try looking for attributes that can change log messages and colors.</summary>
         public bool UseLogModifierAttributes { get; set; } = true;
 
@@ -149,6 +151,9 @@ namespace qASIC.Console
             Logs.Add(log);
             OnLog?.Invoke(log);
         }
+
+        public Color GetLogColor(GameLog log) =>
+            Theme.GetLogColor(log);
 
         static bool TryGetPrefixAttributeOfTrace(MethodBase? method, Type? declaringType, out LogPrefixAttribute? attribute)
         {
