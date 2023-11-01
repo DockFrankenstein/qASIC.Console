@@ -2,7 +2,7 @@
 
 namespace qASIC.Console.Commands.BuiltIn
 {
-    [StandardConsoleCommand]
+    [BuildInConsoleCommand]
     public class Help : GameCommand
     {
         public override string CommandName => "help";

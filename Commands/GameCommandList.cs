@@ -16,6 +16,9 @@ namespace qASIC.Console.Commands
             return this;
         }
 
+        public GameCommandList FindBuiltInCommands() =>
+            FindCommands<BuildInConsoleCommandAttribute>();
+
         /// <summary>Finds and adds commands to the list that use <see cref="StandardConsoleCommandAttribute"/>.</summary>
         public GameCommandList FindCommands() =>
             FindCommands<StandardConsoleCommandAttribute>();
@@ -49,8 +52,6 @@ namespace qASIC.Console.Commands
 
         public GameCommandList FindAttributeCommands(Type type)
         {
-            var commands = new List<GameAttributeCommand>();
-
             var methods = TypeFinder.FindAllAttributesInMethods(type);
 
             foreach (var method in methods)
@@ -60,21 +61,24 @@ namespace qASIC.Console.Commands
 
                 var commandName = attr.Name.ToLower();
 
-                var commandExists = commands
-                    .Any(x => x.CommandName.ToLower() == commandName);
+                var commandExists = Commands
+                    .Any(x => x.command.CommandName.ToLower() == commandName);
 
                 var command = commandExists ?
-                    commands.Where(x => x.CommandName == commandName).First() :
-                    new GameAttributeCommand()
-                    {
-                        CommandName = commandName,
-                    };
+                    (GameAttributeCommand)Commands.Where(x => x.command.CommandName == commandName).First().command :
+                    null;
+
+                command ??= new GameAttributeCommand()
+                {
+                    CommandName = commandName,
+                };
 
                 var methodTarget = new GameAttributeCommand.MethodTarget(method);
 
                 command.Targets.Add(methodTarget);
 
-                AddCommand(command);
+                if (!commandExists)
+                    AddCommand(command);
             }
 
             return this;
