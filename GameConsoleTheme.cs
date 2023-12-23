@@ -1,6 +1,8 @@
-﻿namespace qASIC.Console
+﻿using qASIC.Communication;
+
+namespace qASIC.Console
 {
-    public class GameConsoleTheme
+    public class GameConsoleTheme : INetworkSerializable
     {
         public static GameConsoleTheme Default =>
             new GameConsoleTheme();
@@ -31,6 +33,35 @@
             }
 
             return defaultColor;
+        }
+
+        public void Read(Packet packet)
+        {
+            customColors.Clear();
+            for (int i = 0; i < packet.ReadInt(); i++)
+                customColors.Add(packet.ReadString(), packet.ReadNetworkSerializable<Color>());
+
+            defaultColor = packet.ReadNetworkSerializable<Color>();
+            warningColor = packet.ReadNetworkSerializable<Color>();
+            errorColor = packet.ReadNetworkSerializable<Color>();
+        }
+
+        public Packet Write(Packet packet)
+        {
+            packet = packet
+                .Write(customColors.Count);
+
+            foreach (var item in customColors)
+            {
+                packet.Write(item.Key);
+                packet.Write(item.Value);
+            }
+
+            packet = packet.Write(defaultColor)
+                .Write(warningColor)
+                .Write(errorColor);
+
+            return packet;
         }
     }
 }

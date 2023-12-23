@@ -8,14 +8,21 @@ namespace qASIC.Console
 {
     public class GameConsole
     {
-        public GameConsole()
-        {
+        public const string SYSTEM_NAME = "qASIC.Console";
+        public const string SYSTEM_VERSION = "1.0.0";
 
+        public GameConsole() : this(Guid.NewGuid().ToString()) { }
+
+        public GameConsole(string name)
+        {
+            Name = name;
         }
+
+        public string Name { get; init; }
 
         public event Action<GameLog>? OnLog;
 
-        public static List<GameLog> Logs { get; private set; } = new List<GameLog>();
+        public List<GameLog> Logs { get; internal set; } = new List<GameLog>();
 
         public GameCommandList? CommandList { get; set; }
         public ArgumentsParser? CommandParser { get; set; }
@@ -29,11 +36,11 @@ namespace qASIC.Console
         public bool IncludeStackTraceInCommandExceptions { get; set; } = true;
 
         /// <summary>Determines if it should include exceptions when logging unknown errors with executing commands.</summary>
-        public bool IncludeStackTraceInUnknownCommandExceptions { get; set; } = true;
+        public bool IncludeStackTraceInUnknownCommandExceptions { get; set; } = false;
 
         /// <summary>Can the console execute commands using <see cref="Execute(string)"/>.</summary>
         public bool CanParseAndExecute =>
-            CommandList != null;
+            CommandList != null && CommandParser != null;
 
         /// <summary>Can the console execute commands using <see cref="Execute(string[])"/>.</summary>
         public bool CanExecute =>
